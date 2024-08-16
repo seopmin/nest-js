@@ -1,8 +1,13 @@
-# Set-up
+# Tip
 
-# Setup
+### module 생성
+
+- service, controller, module 모두 생성
 
 ```jsx
-$ npm i -g @nestjs/cli
-$ nest new project-name
+nest g resource 
 ```
+
+### Request Life Cycle
+
+{{ Request }} → Middleware → Guard → Interceptor → Pipe → ( controller, service, repository ) → Exception Filter → Interceptor → {{ Response }}
