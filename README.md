@@ -1,31 +1,21 @@
-# Controller
+# 4.Service
+
+### service 의 역할
+
+: 로직들의 코드를 작성하는 공간
+
+### Tip
 
 ```jsx
-@Controller('post')
-export class AppController {
-  constructor(private readonly appService: AppService) {}
+constructor(private readonly c: C) 
 
-  @Get('post')
-  getPost(): Post {
-    return {
-      author: '곽민섭',
-      title: '민섭',
-      content: '나다나',
-      likeCount: 1234,
-      commentCount: 12341234,
-    };
-  }
+// 위와 동일한 코드
+
+export class A {
+	c: C;
+	
+	constructor(c: C) {
+		this.c = c;
+	}
 }
 ```
-
-@Controller() 에 path 추가
-
-- 해당 클래스의 전체적으로 path 추가
-
-@Get() 에 path 추가
-
-- 해당 메서드에만 path 추가
-
-Q. getPost() 메서드가 실행되려면?
-
-A. `/post/post`  호출
