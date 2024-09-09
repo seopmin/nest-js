@@ -1,80 +1,62 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { BasePostDto } from './dto/base-post.dto';
-
-/**
- * author: string;
- * title: string;
- * content: string;
- * likeCount: number;
- * commentCount: number;
- */
-
-let posts: BasePostDto[] = [
-  {
-    id: 1,
-    author: '민섭',
-    title: '나야나',
-    content: '민섭 나야나',
-    likeCount: 200,
-    commentCount: 200,
-  },
-  {
-    id: 2,
-    author: '민섭',
-    title: '나야나',
-    content: '민섭 나야나',
-    likeCount: 200,
-    commentCount: 200,
-  },
-  {
-    id: 3,
-    author: '민섭',
-    title: '나야나',
-    content: '민섭 나야나',
-    likeCount: 200,
-    commentCount: 200,
-  },
-];
+import { CreatePostDto } from './dto/create-post.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { Post } from '@prisma/client';
+import { UpdatePostDto } from './dto/update-post.dto';
 
 @Injectable()
 export class PostsService {
-  getAllPosts(): BasePostDto[] {
-    return posts;
+  constructor(private readonly prismaService: PrismaService) {}
+
+  async getAllPosts(): Promise<Post[]> {
+    return this.prismaService.post.findMany();
   }
 
-  getPostById(id: string): BasePostDto {
-    const post = posts.find((post) => post.id === +id);
-    if (!post) throw new BadRequestException('존재하지 않는 id입니다.');
-    return post;
-  }
+  async getPostById(id: number): Promise<Post> {
+    const post = await this.prismaService.post.findFirst({
+      where: { id },
+    });
 
-  createPost(post: BasePostDto): BasePostDto {
-    const id = posts[posts.length - 1].id + 1;
-    post.id = id;
-    posts.push(post);
-    return post;
-  }
-
-  updatePost(id: string, reqPost: BasePostDto): BasePostDto {
-    const post = posts.find((post) => post.id === +id);
-
-    if (!post) throw new BadRequestException('존재하지 않는 id입니다.');
-
-    post.author = reqPost.author ?? post.author;
-    post.title = reqPost.title ?? post.title;
-    post.content = reqPost.content ?? post.content;
-
-    posts = posts.map((prevPost) => (prevPost.id === +id ? post : prevPost));
+    if (!post) throw new BadRequestException('존재하지 않는 post입니다.');
 
     return post;
   }
 
-  deletePost(id: number) {
-    const post = posts.find((post) => post.id === id);
+  async createPost(post: CreatePostDto): Promise<Post> {
+    const author = await this.prismaService.user.findUnique({
+      where: { id: post.authorId },
+    });
+
+    if (!author) throw new BadRequestException('존재하지 않는 작가입니다.');
+
+    return await this.prismaService.post.create({
+      data: {
+        ...post,
+      },
+    });
+  }
+
+  async updatePost(id: number, updatePost: UpdatePostDto): Promise<Post> {
+    const post = await this.prismaService.post.findFirst({ where: { id } });
+
     if (!post) throw new BadRequestException('존재하지 않는 id입니다.');
 
-    posts = posts.filter((post) => post.id !== id);
+    return await this.prismaService.post.update({
+      where: {
+        id,
+      },
+      data: {
+        ...updatePost,
+      },
+    });
+  }
 
-    return id;
+  async deletePost(id: number) {
+    const post = await this.prismaService.post.findFirst({ where: { id } });
+
+    if (!post) throw new BadRequestException('존재하지 않는 id입니다.');
+
+    return await this.prismaService.post.delete({ where: { id } });
   }
 }
