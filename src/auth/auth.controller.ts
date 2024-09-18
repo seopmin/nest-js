@@ -9,7 +9,6 @@ export class AuthController {
   @Post('login/email')
   async loginEmail(
     @Headers('authorization') auth: string,
-    @Body() user: CreateUserDto,
   ) {
     const token = await this.authService.extractTokenFromHeader(auth, false);
 

@@ -6,6 +6,7 @@ import {
   Get,
   NotFoundException,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -25,8 +26,8 @@ export class PostsController {
   }
 
   @Get(':id')
-  getPost(@Param('id') postId: number) {
-    return this.postsService.getPostById(+postId);
+  getPost(@Param('id', ParseIntPipe) postId: number) {
+    return this.postsService.getPostById(postId);
   }
 
   @Post()
@@ -36,14 +37,14 @@ export class PostsController {
 
   @Patch(':id')
   patchPost(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() reqPost: UpdatePostDto,
   ) {
-    return this.postsService.updatePost(+id, reqPost);
+    return this.postsService.updatePost(id, reqPost);
   }
 
   @Delete(':id')
-  deletePost(@Param('id') id: number) {
-    return this.postsService.deletePost(+id);
+  deletePost(@Param('id', ParseIntPipe) id: number) {
+    return this.postsService.deletePost(id);
   }
 }
