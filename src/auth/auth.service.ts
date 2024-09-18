@@ -108,10 +108,10 @@ export class AuthService {
     return this.loginUser(createUser);
   }
 
-  async loginWithEmail(user: Pick<User, 'email' | 'password'>) {
-    const existingUser = await this.authenticateWithEmailAndPassword(user);
+  async loginWithEmail(user: User) {
+    // const existingUser = await this.authenticateWithEmailAndPassword(user);
 
-    return this.loginUser(existingUser);
+    return this.loginUser(user);
   }
 
   loginUser(user: Pick<User, 'email' | 'id'>) {
@@ -139,7 +139,7 @@ export class AuthService {
 
     return this.jwtService.sign(payload, {
       secret: JWT_SECRET,
-      expiresIn: isRefreshToken ? 3600 : 3,
+      expiresIn: isRefreshToken ? 3600 : 300,
     });
   }
 
