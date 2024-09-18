@@ -16,4 +16,16 @@ export class UsersService {
   async getAllUser(): Promise<User[]> {
     return await this.prismaService.user.findMany();
   }
+
+  async getUserByEmail(email: string): Promise<User | null> {
+    return await this.prismaService.user.findFirst({
+      where: { email },
+    });
+  }
+
+  async getUserByNickname(nickname: string): Promise<User | null> {
+    return await this.prismaService.user.findFirst({
+      where: { nickname },
+    });
+  }
 }
