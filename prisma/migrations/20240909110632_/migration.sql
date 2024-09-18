@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `post` MODIFY `likeCount` INTEGER NOT NULL DEFAULT 0,
+    MODIFY `commentCount` INTEGER NOT NULL DEFAULT 0;
