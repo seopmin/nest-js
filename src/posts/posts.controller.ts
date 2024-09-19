@@ -1,22 +1,22 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
-  NotFoundException,
   Param,
   ParseIntPipe,
   Patch,
   Post,
-  Query,
   UseGuards,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
-import { BasePostDto } from './dto/base-post.dto';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { AccessTokenGuard, BearerTokenGuard } from 'src/auth/guard/bearer-token.guard';
+import {
+  AccessTokenGuard,
+} from 'src/auth/guard/bearer-token.guard';
+import { CurrentUser } from 'src/auth/current-user.decorator';
+import { User } from '@prisma/client';
 
 @UseGuards(AccessTokenGuard)
 @Controller('posts')
@@ -35,8 +35,8 @@ export class PostsController {
   }
 
   @Post()
-  async postPost(@Body() post: CreatePostDto) {
-    return await this.postsService.createPost(post);
+  async postPost(@CurrentUser() user: User, @Body() post: CreatePostDto) {
+    return await this.postsService.createPost(user, post);
   }
 
   @Patch(':id')

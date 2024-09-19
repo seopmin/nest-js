@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { BasePostDto } from './dto/base-post.dto';
 import { CreatePostDto } from './dto/create-post.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Post } from '@prisma/client';
+import { Post, User } from '@prisma/client';
 import { UpdatePostDto } from './dto/update-post.dto';
 
 @Injectable()
@@ -23,15 +23,16 @@ export class PostsService {
     return post;
   }
 
-  async createPost(post: CreatePostDto): Promise<Post> {
+  async createPost(user: User, post: CreatePostDto): Promise<Post> {
     const author = await this.prismaService.user.findUnique({
-      where: { id: post.authorId },
+      where: { id: user.id },
     });
 
     if (!author) throw new BadRequestException('존재하지 않는 작가입니다.');
 
     return await this.prismaService.post.create({
       data: {
+        authorId: user.id,
         ...post,
       },
     });
