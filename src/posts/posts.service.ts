@@ -4,6 +4,8 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Post, User } from '@prisma/client';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { PaginatePostDto } from './dto/paginate-post.dto';
+import { HTTP_HOST, PROTOCOL } from 'src/common/const/env.const';
 
 @Injectable()
 export class PostsService {
@@ -11,6 +13,64 @@ export class PostsService {
 
   async getAllPosts(): Promise<Post[]> {
     return this.prismaService.post.findMany();
+  }
+
+  async paginatePosts(dto: PaginatePostDto) {
+    const key = dto.where__id_more_than ? {
+      gt: dto.where__id_more_than ?? 0,
+    } : {
+      lt: dto.where__id_less_than ?? 0,
+    }
+
+    const posts = await this.prismaService.post.findMany({
+      where: {
+        id: key,
+      },
+      orderBy: {
+        createdAt: dto.order_createdAt,
+      },
+      take: dto.take,
+    });
+
+    const lastPostItemId =
+      posts.length - 1 >= 0
+        ? posts[posts.length - 1].id
+        : dto.where__id_more_than;
+
+    const nextUrl =
+      posts.length === dto.take
+        ? `${PROTOCOL}://${HTTP_HOST}/posts?where__id_more_than=${lastPostItemId}`
+        : null;
+    /**
+     * < Response >
+     * data: []
+     * cursor: {
+     *  after: 마지막 데이터의 id
+     * }
+     * count: 응답 데이터의 개수
+     * next: 다음 데이터를 사용할 때의 url
+     */
+
+    return {
+      data: posts,
+      cursor: {
+        after: lastPostItemId,
+      },
+      count: posts.length,
+      next: nextUrl,
+    };
+  }
+
+  async generatePosts(userId: number) {
+    const user: Pick<User, 'id'> = { id: userId };
+
+    for (let i = 0; i < 100; i++) {
+      await this.createPost(user, {
+        title: `임의로 생성한 title - ${i}`,
+        content: `임의로 생성한 content - ${i}`,
+      });
+    }
+    return { userId };
   }
 
   async getPostById(id: number): Promise<Post> {
@@ -23,7 +83,7 @@ export class PostsService {
     return post;
   }
 
-  async createPost(user: User, post: CreatePostDto): Promise<Post> {
+  async createPost(user: Pick<User, 'id'>, post: CreatePostDto): Promise<Post> {
     const author = await this.prismaService.user.findUnique({
       where: { id: user.id },
     });

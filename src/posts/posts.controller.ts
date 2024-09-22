@@ -7,26 +7,30 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import {
-  AccessTokenGuard,
-} from 'src/auth/guard/bearer-token.guard';
+import { AccessTokenGuard } from 'src/auth/guard/bearer-token.guard';
 import { CurrentUser } from 'src/auth/current-user.decorator';
 import { User } from '@prisma/client';
+import { PaginatePostDto } from './dto/paginate-post.dto';
 
 @UseGuards(AccessTokenGuard)
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
+  // @Get()
+  // getAllPosts() {
+  //   return this.postsService.getAllPosts();
+  // }
+
   @Get()
-  @UseGuards(AccessTokenGuard)
-  getAllPosts() {
-    return this.postsService.getAllPosts();
+  getPosts(@Query() query: PaginatePostDto) {
+    return this.postsService.paginatePosts(query);
   }
 
   @Get(':id')
@@ -50,5 +54,10 @@ export class PostsController {
   @Delete(':id')
   deletePost(@Param('id', ParseIntPipe) id: number) {
     return this.postsService.deletePost(id);
+  }
+
+  @Post('generate/random-posts')
+  generateRandomPost(@CurrentUser() user: User) {
+    return this.postsService.generatePosts(user.id);
   }
 }
