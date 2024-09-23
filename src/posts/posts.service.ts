@@ -15,12 +15,15 @@ export class PostsService {
     return this.prismaService.post.findMany();
   }
 
-  async paginatePosts(dto: PaginatePostDto) {
-    const key = dto.where__id_more_than ? {
-      gt: dto.where__id_more_than ?? 0,
-    } : {
-      lt: dto.where__id_less_than ?? 0,
-    }
+  async cursorPaginatePosts(dto: PaginatePostDto) {
+    const key =
+      dto.where__id_more_than === 0 || dto.where__id_more_than
+        ? {
+            gt: dto.where__id_more_than ?? 0,
+          }
+        : {
+            lt: dto.where__id_less_than ?? 0,
+          };
 
     const posts = await this.prismaService.post.findMany({
       where: {
@@ -31,6 +34,10 @@ export class PostsService {
       },
       take: dto.take,
     });
+
+    console.log(dto);
+    console.log(key);
+    console.log(posts);
 
     const lastPostItemId =
       posts.length - 1 >= 0
@@ -71,6 +78,35 @@ export class PostsService {
       });
     }
     return { userId };
+  }
+
+  // 1) 오름차순으로 정렬하는 pagination만 구현
+  async paginatePosts(dto: PaginatePostDto) {
+    if (dto.page) {
+      return this.pagePaginatePosts(dto);
+    } else {
+      return this.cursorPaginatePosts(dto);
+    }
+  }
+
+  async pagePaginatePosts(dto: PaginatePostDto) {
+    /**
+     * data: Data[],
+     * total: number
+     */
+
+    const posts = await this.prismaService.post.findMany({
+      skip: dto.take * (dto.page - 1),
+      take: dto.take,
+      orderBy: {
+        createdAt: dto.order_createdAt,
+      },
+    });
+
+    return {
+      data: posts,
+      total: posts.length,
+    };
   }
 
   async getPostById(id: number): Promise<Post> {
