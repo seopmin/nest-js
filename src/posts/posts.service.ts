@@ -17,12 +17,12 @@ export class PostsService {
 
   async cursorPaginatePosts(dto: PaginatePostDto) {
     const key =
-      dto.where__id_more_than === 0 || dto.where__id_more_than
+      dto.where__id__more_than === 0 || dto.where__id__more_than
         ? {
-            gt: dto.where__id_more_than ?? 0,
+            gt: dto.where__id__more_than ?? 0,
           }
         : {
-            lt: dto.where__id_less_than ?? 0,
+            lt: dto.where__id__less_than ?? 0,
           };
 
     const posts = await this.prismaService.post.findMany({
@@ -35,18 +35,14 @@ export class PostsService {
       take: dto.take,
     });
 
-    console.log(dto);
-    console.log(key);
-    console.log(posts);
-
     const lastPostItemId =
       posts.length - 1 >= 0
         ? posts[posts.length - 1].id
-        : dto.where__id_more_than;
+        : dto.where__id__more_than;
 
     const nextUrl =
       posts.length === dto.take
-        ? `${PROTOCOL}://${HTTP_HOST}/posts?where__id_more_than=${lastPostItemId}`
+        ? `${PROTOCOL}://${HTTP_HOST}/posts?where__id__more_than=${lastPostItemId}`
         : null;
     /**
      * < Response >

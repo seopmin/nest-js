@@ -12,9 +12,10 @@ import {
   BearerTokenGuard,
   RefreshTokenGuard,
 } from './auth/guard/bearer-token.guard';
+import { CommonModule } from './common/common.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, PostsModule, PrismaModule],
+  imports: [AuthModule, UsersModule, PostsModule, PrismaModule, CommonModule],
   controllers: [AppController],
   providers: [
     AppService,
