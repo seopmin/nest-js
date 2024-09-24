@@ -13,9 +13,17 @@ import {
   RefreshTokenGuard,
 } from './auth/guard/bearer-token.guard';
 import { CommonModule } from './common/common.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [AuthModule, UsersModule, PostsModule, PrismaModule, CommonModule],
+  imports: [
+    AuthModule,
+    UsersModule,
+    PostsModule,
+    PrismaModule,
+    CommonModule,
+    ConfigModule.forRoot({ isGlobal: true }),
+  ],
   controllers: [AppController],
   providers: [
     AppService,
