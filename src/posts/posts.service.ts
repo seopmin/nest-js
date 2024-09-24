@@ -5,11 +5,18 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Post, User } from '@prisma/client';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PaginatePostDto } from './dto/paginate-post.dto';
-import { HTTP_HOST, PROTOCOL } from 'src/common/const/env.const';
+import { ConfigService } from '@nestjs/config';
+import { ENV_HTTP_HOST_KEY, ENV_PROTOCOL_KEY } from 'src/common/const/env-keys.const';
 
 @Injectable()
 export class PostsService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly configService: ConfigService,
+  ) {}
+
+  private protocol = this.configService.get(ENV_PROTOCOL_KEY);
+  private httpHost = this.configService.get(ENV_HTTP_HOST_KEY);
 
   async getAllPosts(): Promise<Post[]> {
     return this.prismaService.post.findMany();
@@ -42,7 +49,7 @@ export class PostsService {
 
     const nextUrl =
       posts.length === dto.take
-        ? `${PROTOCOL}://${HTTP_HOST}/posts?where__id__more_than=${lastPostItemId}`
+        ? `${this.protocol}://${this.httpHost}/posts?where__id__more_than=${lastPostItemId}`
         : null;
     /**
      * < Response >

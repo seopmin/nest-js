@@ -5,17 +5,19 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
-import { HASH_ROUNDS, JWT_SECRET } from './const/auth.const';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { decode } from 'punycode';
+import { ConfigService } from '@nestjs/config';
+import { ENV_HASH_ROUNDS_KEY } from 'src/common/const/env-keys.const';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
+    private readonly configSerive: ConfigService,
   ) {}
   /**
    * 기능 정리
@@ -99,7 +101,10 @@ export class AuthService {
     }
 
     // 비밀번호 해싱
-    user.password = await bcrypt.hash(user.password, HASH_ROUNDS);
+    user.password = await bcrypt.hash(
+      user.password,
+      this.configSerive.get(ENV_HASH_ROUNDS_KEY),
+    );
 
     // 사용자 생성
     const createUser = await this.usersService.createUser(user);
@@ -138,7 +143,7 @@ export class AuthService {
     };
 
     return this.jwtService.sign(payload, {
-      secret: JWT_SECRET,
+      secret: this.configSerive.get('JWT_SECRET'),
       expiresIn: isRefreshToken ? 3600 : 300,
     });
   }
@@ -174,7 +179,7 @@ export class AuthService {
 
   async rotateToken(token: string) {
     const decoded = this.jwtService.verify(token, {
-      secret: JWT_SECRET,
+      secret: this.configSerive.get('JWT_SECRET'),
     });
 
     /**
@@ -188,15 +193,15 @@ export class AuthService {
       );
 
     return {
-      accessToken: this.signToken({...decoded}, false),
-      refreshToken: this.signToken({...decoded}, true),
+      accessToken: this.signToken({ ...decoded }, false),
+      refreshToken: this.signToken({ ...decoded }, true),
     };
   }
 
   // 토큰 검증
   async verifyToken(token: string) {
     return this.jwtService.verify(token, {
-      secret: JWT_SECRET,
+      secret: this.configSerive.get('JWT_SECRET'),
     });
   }
 }
